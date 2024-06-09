@@ -3,27 +3,27 @@ from CalcLidarData import CalcLidarData
 import matplotlib.pyplot as plt
 import math
 
-# Tạo 1 figure với pyplot của matplotlib
-# Figure có thể hiểu là 1 canvas, trên đó ta có thể vẽ nhiều biểu đồ
+# 创建一个 matplotlib 的图形
+# 图形可以理解为一个画布，我们可以在上面绘制多张图表
 fig = plt.figure(figsize=(8,8))
 
-# Tạo 1 biểu đồ trên Figure
-  # Tại tọa độ 111, tức (1, 1) và mang index = 1 trên figure
-  # Hệ tọa độ polar, hình tròn, thường dùng trong các bản đồ radar
+# 在图形上创建一个图表
+  # 在坐标 (1, 1) 并在图形上具有索引 = 1
+  # 使用极坐标系，通常用于雷达图
 ax = fig.add_subplot(111, projection='polar')
-# Title cho biểu đồ
+# 图表标题
 ax.set_title('Lidar LD19 (exit: Key E)',fontsize=18)
 
-# Com port kết nối serial
+# 串口连接端口
 com_port = "COM5"
 
-# Tạo 1 event cho pyplot
-  # 'key_press_event': event nhấn 1 key
-  # 1 hàm đc trigger cùng event
-  # Press E to exit
+# 创建一个事件用于 pyplot
+  # 'key_press_event': 按键事件
+  # 一个与事件绑定的函数
+  # 按下 E 键退出
 plt.connect('key_press_event', lambda event: exit(1) if event.key == 'e' else None)
 
-# Tạo kết nối Serial
+# 创建串口连接
 ser = serial.Serial(port=com_port,
                     baudrate=230400,
                     timeout=5.0,
@@ -45,40 +45,38 @@ while True:
         if ('line' in locals()):
             line.remove()
 
-        # Vẽ biểu đồ scatter (biểu đồ dạng điểm)
-            # Thường biểu diễn tương quan giữa 2 giá trị, ở đây là góc + khoảng cách
-            # c: color, s: size of points
+        # 绘制散点图
+            # 通常表示两个值之间的相关性，这里是角度和距离
+            # c: 颜色, s: 点的大小
         print(len(angles))
         line = ax.scatter(angles, distances, c="blue", s=5)
-        # Set offset cho vị trí của góc 0 độ trong hệ tọa độ polar
-            # Với hệ tọa độ của Lidar, góc 0 độ ứng với trục 0y nên cần set offset pi / 2
+        # 设置极坐标系中 0 度角的位置偏移
+            # 在 Lidar 的坐标系中，0 度角对应 y 轴，需要设置偏移 pi / 2
         ax.set_theta_offset(math.pi / 2)
-        # Update Figure, hoặc delay 1 khoảng thời gian
+        # 更新图形，或者延迟一段时间
         plt.pause(0.01)
-        # Clear tập giá trị
+        # 清除数值集合
         angles.clear()
         distances.clear()
 
         i = 0
 
-
     while loopFlag:
-        # Đọc data từ Serial
+        # 从串口读取数据
         b = ser.read()
-        # Convert int từ byte đọc được
-            # big: byte order của chuỗi bit, các bit quan trọng nhất nằm ở đầu
+        # 将读取的字节转换为整数
+            # big: 字节顺序，最高有效位在前
         tmpInt = int.from_bytes(b, 'big')
 
-        # 0x54, indicating the beginning of the data packet (LD19 document)
+        # 0x54 表示数据包的起始（LD19 文档）
         if (tmpInt == 0x54):
             tmpString += b.hex() + " "
             flag2c = True
             continue
 
-        # 0x2c: fixed value of VerLen (LD19 document)
+        # 0x2c: 固定值 VerLen（LD19 文档）
         elif (tmpInt == 0x2c and flag2c):
             tmpString += b.hex()
-
 
             if (not len(tmpString[0:-5].replace(' ','')) == 90):
                 tmpString = ""
@@ -86,13 +84,13 @@ while True:
                 flag2c = False
                 continue
 
-            # Sau khi đọc full 1 gói data Lidar sẽ có kích thước = 90, lấy string và đưa vào hàm CalcLidarData()
+            # 读取完整的一个 Lidar 数据包后，大小应为 90，获取字符串并传入 CalcLidarData() 函数
             lidarData = CalcLidarData(tmpString[0:-5])
-            # Get giá trị của góc và distance
+            # 获取角度和距离值
             angles.extend(lidarData.Angle_i)
             distances.extend(lidarData.Distance_i)
 
-            #print(distances)
+            # print(distances)
 
             tmpString = ""
             loopFlag = False
