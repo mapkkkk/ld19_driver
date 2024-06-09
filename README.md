@@ -1,6 +1,4 @@
-# LIDAR_LD19_python_data_reader
-
-This code can use Lidar's LD19 provided by LDROBOT from Python. and It displays the acquired point cloud in real time in matplotlib.
+# LD-19 driver
 
 # How to use
 
