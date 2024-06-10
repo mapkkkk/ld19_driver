@@ -1,6 +1,8 @@
 import serial
 import matplotlib.pyplot as plt
 import math
+import numpy as np
+import time
 
 class LidarData:
     def __init__(self, FSA, LSA, CS, Speed, TimeStamp, Degree_angle, Angle_i, Distance_i):
@@ -99,12 +101,12 @@ class img:
                 # 将读取的字节转换为整数
                 # big: 字节顺序，最高有效位在前
                 tmpInt = int.from_bytes(b, 'big')
-                # 0x54 表示数据包的起始（LD19 文档）
+                # 0x54 表示数据包的起始
                 if (tmpInt == 0x54):
                     tmpString += b.hex() + " "
                     flag2c = True
                     continue
-                # 0x2c: 固定值 VerLen（LD19 文档）
+                # 0x2c: 固定值 VerLen
                 elif (tmpInt == 0x2c and flag2c):
                     tmpString += b.hex()
                     if (not len(tmpString[0:-5].replace(' ','')) == 90):
