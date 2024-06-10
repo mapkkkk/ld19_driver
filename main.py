@@ -1,8 +1,8 @@
 import serial
-import matplotlib.pyplot as plt
 import math
 import numpy as np
 import time
+import cv2 as cv
 
 class LidarData:
     def __init__(self, FSA, LSA, CS, Speed, TimeStamp, Degree_angle, Angle_i, Distance_i):
@@ -18,6 +18,9 @@ class LidarData:
 class img:
     def __init__(self):
         self.ser = serial.Serial(port="COM3",baudrate=230400,timeout=5.0,bytesize=8,parity='N',stopbits=1)
+        self.size = 1000
+        self.scale = 300
+        self.black_img = np.zeros((self.size, self.size, 1), dtype=np.uint8)
 
     def CalcLidarData(self, str):
         str = str.replace(' ', '')
@@ -60,46 +63,37 @@ class img:
         return lidarData
 
     def output_img(self):
-        # 创建一个 matplotlib 的图形
-        # 图形可以理解为一个画布，我们可以在上面绘制多张图表
-        fig = plt.figure(figsize=(8,8))
-        # 在图形上创建一个图表
-        # 在坐标 (1, 1) 并在图形上具有索引 = 1
-        # 使用极坐标系，通常用于雷达图
-        ax = fig.add_subplot(111, projection='polar')
-
         tmpString = ""
-        lines = list()
         angles = list()
         distances = list()
-
         i = 0
         while True:
             loopFlag = True
             flag2c = False
+            self.black_img = np.zeros((1000, 1000, 1), dtype=np.uint8)
             if (i % 40 == 39):
-                if ('line' in locals()):
-                    line.remove()
-                # 绘制散点图
-                # 通常表示两个值之间的相关性，这里是角度和距离
-                # c: 颜色, s: 点的大小
-                print(len(angles))
-                line = ax.scatter(angles, distances, c="blue", s=5)
-                # 设置极坐标系中 0 度角的位置偏移
-                # 在 Lidar 的坐标系中，0 度角对应 y 轴，需要设置偏移 pi / 2
-                ax.set_theta_offset(math.pi / 2)
-                # 更新图形，或者延迟一段时间
-                plt.pause(0.01)
+                x = distances * np.cos(angles)
+                y = distances * np.sin(angles)
+                y = y * self.scale + self.size / 2
+                x = x * self.scale + self.size / 2
+                x_len = len(x)
+                y_len = len(y)
+                if(x_len == y_len):
+                    for j in range(x_len):
+                        if (x[j] < self.size and y[j] < self.size):
+                            self.black_img[int(x[j]), int(y[j])] = 255
                 # 清除数值集合
                 angles.clear()
                 distances.clear()
+                cv.imshow("Lidar", self.black_img)
+                cv.waitKey(1)
+                time.sleep(0.01)
                 i = 0
 
             while loopFlag:
                 # 从串口读取数据
                 b = self.ser.read()
-                # 将读取的字节转换为整数
-                # big: 字节顺序，最高有效位在前
+                # 将读取的字节转换为整数, big: 字节顺序，最高有效位在前
                 tmpInt = int.from_bytes(b, 'big')
                 # 0x54 表示数据包的起始
                 if (tmpInt == 0x54):
@@ -119,7 +113,6 @@ class img:
                     # 获取角度和距离值
                     angles.extend(lidarData.Angle_i)
                     distances.extend(lidarData.Distance_i)
-                    # print(distances)
                     tmpString = ""
                     loopFlag = False
                 else:
