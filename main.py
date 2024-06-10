@@ -52,8 +52,6 @@ class img:
         for i in range(0, 6 * 12, 6):
             # 距离，单位（毫米）
             Distance_i.append(int(str[8+i+2 : 8+i+4] + str[8+i : 8+i+2], 16) / 1000)
-            # Intensity，光强度，越大表示可信度越高
-            # Confidence_i.append(int(str[8+i+4 : 8+i+6], 16))
             # 数据包中点的角度
             Degree_angle.append(circle(angleStep * counter + FSA))
             Angle_i.append(circle(angleStep * counter + FSA) * math.pi / 180.0)
