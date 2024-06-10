@@ -1,7 +1,8 @@
 import serial
-from CalcLidarData import CalcLidarData
 import matplotlib.pyplot as plt
 import math
+
+from CalcLidarData import CalcLidarData
 
 # 创建一个 matplotlib 的图形
 # 图形可以理解为一个画布，我们可以在上面绘制多张图表
@@ -15,7 +16,7 @@ ax = fig.add_subplot(111, projection='polar')
 ax.set_title('Lidar LD19 (exit: Key E)',fontsize=18)
 
 # 串口连接端口
-com_port = "COM5"
+com_port = "COM3"
 
 # 创建一个事件用于 pyplot
 # 'key_press_event': 按键事件
