@@ -125,3 +125,6 @@ class img:
                 flag2c = False
             i += 1
 
+
+test = img()
+test.output_img()
